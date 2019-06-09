@@ -32,15 +32,60 @@ Box.prototype.setRotate = function(theta) {
     this.R = rotate(theta);
 }
 
-
 Box.prototype.setScale = function(x, y) {
     this.S = scale(x, y);
+}
+
+Box.prototype.setFill = function(fill) {
+    this.fill = fill;
+}
+
+Box.prototype.setStroke = function(stroke) {
+    this.stroke = stroke;
+}
+
+Box.prototype.getInverseTranslate = function(){
+    return inverseTranslate(this.T);
+}
+
+Box.prototype.getInverseRotate = function(){
+    return inverseRotate(this.R);
+}
+
+Box.prototype.getInverseScale = function(){
+    return inverseScale(this.S);
+}
+
+Box.prototype.tryIntersection = function(coord){
+    
+    var iR = this.getInverseRotate();
+    var iT = this.getInverseTranslate();
+    var iS = this.getInverseScale();
+
+    var Mg = mult(mult(iS, iR), iT);
+
+    var pL = multVec(Mg, coord);
+
+    var points = [];
+    points.push([this.center[0] + this.width / 2, this.center[1] + this.height / 2, 1]);
+    points.push([this.center[0] - this.width / 2, this.center[1] + this.height / 2, 1]);
+    points.push([this.center[0] - this.width / 2, this.center[1] - this.height / 2, 1]);
+    points.push([this.center[0] + this.width / 2, this.center[1] - this.height / 2, 1]);
+
+    if(pL[0] >= points[1][0] && pL[0] <= points[0][0]){
+        if(pL[1] >= points[2][1] && pL[1] <= points[1][1]){
+            
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 Box.prototype.draw = function(canv = ctx) { //requer o contexto de desenho
     //pega matriz de tranformação de coordenadas canônicas para coordenadas do canvas
     var M = transformCanvas(WIDTH, HEIGHT);
-    var Mg = mult(M, mult(mult(this.R, this.S), this.T));
+    var Mg = mult(M, mult(mult(this.T, this.R), this.S));
     canv.lineWidth = 2; //largura da borda
     canv.strokeStyle = this.stroke;
     canv.fillStyle = this.fill;
@@ -71,7 +116,10 @@ Box.prototype.draw = function(canv = ctx) { //requer o contexto de desenho
 }
 
 
-function Circle(center = [0, 0, 1], radius = 50) {
+//--------------------------------------------- CIRCLE ---------------------------------------------//
+
+
+function Circle(center = [0, 0, 1], radius = 30) {
     this.center = center;
     this.radius = radius;
     this.T = identity(); //matriz 3x3 de translação 
@@ -111,10 +159,48 @@ Circle.prototype.setFill = function(fill) {
     this.fill = fill;
 }
 
+Circle.prototype.setStroke = function(stroke) {
+    this.stroke = stroke;
+}
+
+Circle.prototype.getInverseTranslate = function(){
+    return inverseTranslate(this.T);
+}
+
+Circle.prototype.getInverseRotate = function(){
+    return inverseRotate(this.R);
+}
+
+Circle.prototype.getInverseScale = function(){
+    return inverseScale(this.S);
+}
+
+Circle.prototype.tryIntersection = function(coords){
+    
+    var iR = this.getInverseRotate();
+    var iT = this.getInverseTranslate();
+    var iS = this.getInverseScale();
+
+    var Mg = mult(mult(iS, iR), iT);
+
+    var pL = multVec(Mg, coords);
+
+    var x = Math.pow(pL[0] - this.center[0], 2);
+    var y = Math.pow(pL[1] - this.center[1], 2);
+
+    var d = Math.sqrt(x+y);
+
+    if(d <= this.radius){
+        return true;
+    }else{
+        return false;
+    }
+}
+
 Circle.prototype.draw = function(canv = ctx) { //requer o contexto de desenho
     //pega matriz de tranformação de coordenadas canônicas para coordenadas do canvas
     var M = transformCanvas(WIDTH, HEIGHT);
-    var Mg = mult(M, mult(mult(this.R, this.S), this.T));
+    var Mg = mult(M, mult(mult(this.T, this.R), this.S));
     canv.lineWidth = 2; //largura da borda
     canv.strokeStyle = this.stroke;
     canv.fillStyle = this.fill;

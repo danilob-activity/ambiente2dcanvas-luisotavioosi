@@ -11,7 +11,9 @@ canvas.height = HEIGHT;
 //faz o desenho do triângulo
 
 var objects = []; //lista de objetos
-var objectSelected = null;
+var flag;
+
+objectSelected = null;
 
 function drawCanvas() {
     ctx.clearRect(0, 0, WIDTH, HEIGHT);
@@ -65,6 +67,18 @@ function updateDisplay(objectSelected) {
     document.getElementById("posy").value = objectSelected.getTranslate()[1];
 }
 
+function objectName(){
+    if (objectSelected != null) {
+        try {
+            name = document.getElementById("objectName").value;
+            objectSelected.setName(name);
+            drawCanvas();
+        } catch (error) {
+            window.alert(error);
+        }
+    }
+}
+
 function updatePosition() {
     if (objectSelected != null) {
         try {
@@ -73,7 +87,105 @@ function updatePosition() {
             objectSelected.setTranslate(posx, posy);
             drawCanvas();
         } catch (error) {
-            alert(error);
+            window.alert(error);
         }
     }
 }
+
+function scaleObject() {
+    if (objectSelected != null) {
+        try {
+            scalex = parseFloat(document.getElementById("scalex").value);
+            scaley = parseFloat(document.getElementById("scaley").value);
+            objectSelected.setScale(scalex, scaley);
+            drawCanvas();
+        } catch (error) {
+            window.alert(error);
+        }
+    }
+}
+
+function rotateObject(){
+    if(objectSelected != null){
+        try {
+            angle = parseFloat(document.getElementById("angle").value);
+            objectSelected.setRotate(angle);
+            drawCanvas();
+        } catch (error) {
+            window.alert(error);
+        }
+    }
+}
+
+function colorObject(){
+    if(objectSelected != null){
+        try {
+            fill = "#" + document.getElementById("colorObject").value;
+            objectSelected.setFill(fill);
+            drawCanvas();
+        } catch (error) {
+            window.alert(error);
+        }
+    }
+}
+
+function strokeObject(){
+    if(objectSelected != null){
+        try {
+            stroke = "#" + document.getElementById("strokeObject").value;
+            objectSelected.setStroke(stroke);
+            drawCanvas();
+        } catch (error) {
+            window.alert(error);
+        }
+    }
+}
+
+function onClickMouse(event){
+    x = event.offsetX;
+    y = event.offsetY;
+    objectSelected = null;
+
+    var newcoord = multVec(transformUsual(WIDTH, HEIGHT), [x, y, 1]);
+
+    
+
+    console.log("X_Usual: " + newcoord[0] + " Y_Usual: " + newcoord[1]);
+    
+    for(var i=0; i < objects.length; i++){
+        if(objects[i].tryIntersection(newcoord)){
+
+            console.log("Houve Interseção!");
+            objectSelected = objects[i];
+        }else{
+            console.log("Não houve interseção");
+        }
+    }
+}
+
+function overClick(event){
+    flag = 0;
+}
+
+function setToMoveObject(){
+    flag = 1;
+}
+
+function moveObject(event){
+    if(flag == 1){
+        if(objectSelected != null){
+            var x = event.offsetX;
+            var y = event.offsetY;
+            var pos = multVec(transformUsual(WIDTH, HEIGHT), [x,y,1]);
+            objectSelected.setTranslate(pos[0], pos[1]);
+            drawCanvas();
+        }
+    }
+}
+
+
+
+canvas.addEventListener("dblclick", setToMoveObject);
+canvas.addEventListener("mousemove", moveObject);
+canvas.addEventListener("click", overClick);
+
